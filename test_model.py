@@ -52,8 +52,8 @@ model.load_weights(bst_weights_path)
 
 image_folder = 'custom_images'
 
-image_name = 'custom_images/8.jpg'
-print(image_name)
+image_name = '8.jpg'
+#print(image_name)
 
 # In[ ]:
 
@@ -114,11 +114,9 @@ def plot_images(predicted_mask):
     return rgb
 
 
-def map_label(pos):
-    return str(labels[pos])
 
-print('labels')
-print(map_label(0))
+
+
 
 #train_data = np.load('./data/train_data.npy')
 
@@ -126,7 +124,7 @@ print(map_label(0))
 # In[17]:
 
 
-image = my_norm(cv2.imread(image_name))
+image = my_norm(cv2.imread(image_folder+'/'+ image_name))
 #print(image)
 #image = my_norm(cv2.imread('custom_images/' + 2.jpg))
 #image = cv2.resize(image, (480,360))
@@ -146,133 +144,46 @@ output = model.predict_proba(image)
 #print('output')
 #print(output[0])
 pred = plot_images(np.argmax(output[0],axis=1).reshape((360,480)))
-#print('pred')
-#print(pred)
-#array = np.argmax(output[0],axis=1).reshape((360,480))
-#array = pred
-#from PIL import Image
-#print(array)
-#
-#img = Image.fromarray(array.astype('uint8'))
-#img.show()
-#plt.imshow(img)
 
-#plt.plot(np.argmax(output[0],axis=1).reshape((360,480)))
-
-#plt.colorbar(orientation='vertical')
-#plt.show()
-
-
-#import numpy_indexed as npi
-#index = np.arange(pred.size) # array_3d[0].size
-#(value, index), count = npi.count((pred.flatten(), index))
-#a = np.round(pred)
-#a = pred
+def map_label(pos):
+    return str(labels[pos])
 
 
 
-
-
-np.set_printoptions(precision=3)
-data = pred.ravel()
-
-#==============================================================================
-# import json
-# #print(json.dumps(data, default=lambda x: list(x), indent=4))
-# a = json.dumps(data, default=lambda x: list(x), indent=4)
-# #item_dict = json.loads(json.dumps(data, default=lambda x: list(x), indent=4))
-# def unique_count(a):
-#     unique, inverse = np.unique(a, return_inverse=True)
-#     count = np.zeros(len(unique), np.int)
-#     np.add.at(count, inverse, 1)
-#     return np.vstack(( unique, count)).T
-# 
-# print(unique_count(data))
-# 
-# print(len(data))
-# n = np.unique(pred)
-# print(n)
-# classes = np.unique(pred)
-# i=0
-# while i<len(n):
-# #    c = classes[i]
-# #    d= np.sum(np.where(data=classes[i]))
-#     np.set_printoptions(precision=3)
-#     print('{'+str((classes[i]))+', '+str(np.sum(np.where(data==classes[i])))+'}')
-#     i+=1
-#==============================================================================
-
+predicted_classes = np.argmax(output[0],axis=1).reshape((360,480))
+predicted_classes = np.reshape(predicted_classes, (np.product(predicted_classes.shape),))
+#print('argmax')
+total_numbers = len(predicted_classes)
+#print(total_numbers)
+#print('category')
+#print((np.unique(predicted_classes)))
+category_found = len(np.unique(predicted_classes))
+print("Total categories found: "+str(category_found))
 
 from collections import Counter
-d = Counter(data)
+d = Counter(predicted_classes)
 
 n, m = list(d.keys()), list(d.values())
 
 i=0
+s =""
 while i<len(n):
     np.set_printoptions(precision=3)
-    print('{'+str((n[i]))+', '+str(m[i])+'}')
+    item = '{"'+str((map_label(n[i])))+'", '+str(round(m[i]/total_numbers, 4))+'}'
+    s+= item + ', '
+    #print(item)
     i+=1
+if len(s) > 0:
+    if s[-1:] == ",":
+        s = s[:-1]
+#print(s)
 
-print(list(n), list(m))
-#==============================================================================
-# b = np.unique(pred)
-# c = 360*480*3
-# print(c)
-# print(b)
-# print(np.sum(np.where(data==b[0]))/c)
-# print(np.sum(np.where(data==b[1]))/c)
-# print(np.sum(np.where(data==b[2]))/c)
-# print(np.sum(np.where(data==b[3]))/c)
-# print(np.sum(np.where(data==b[4]))/c)
-# print(np.sum(np.where(data==b[5]))/c)
-# print(np.sum(np.where(data==b[6]))/c)
-#==============================================================================
+final_json = '{"file_name": ' +'"'+ image_name+'", '+ s+'}'
+print(final_json)
 
-
-#print(len(item_dict['result'][0]['run']))
-with open('test.txt', 'w') as f: f.write(json.dumps(data, default=lambda x: list(x), indent=4))
-#print(data.shape)
-
-#unique, counts = np.unique(a, return_counts=True)
-
-
-#print(np.asarray((unique, counts)).T)
-#print(np.bincount(a.astype(np.int64)))
-
-# =============================================================================
-# print(len(pred))
-# #b = np.reshape(pred, (1,np.product(pred.shape)))
-# b =pred.ravel()
-# b= np.asarray(b, dtype=int)
-# c = np.bincount(b)
-# print(len(b))
-# print(b.shape)
-# print(c)
-# =============================================================================
-# =============================================================================
-# import collections
-# #a = [1,1,1,1,2,2,2,2,3,3,4,5,5]
-# #counter=collections.Counter(a)
-# counter=collections.Counter(pred)
-# print(counter)
-# =============================================================================
-
-# =============================================================================
-# img = Image.fromarray(array)
-# img.save('testrgb.png')
-# img=mpimg.imread('testrgb.png')
-# plt.imshow(img)
-# plt.show()
-# =============================================================================
-
-objects_detected = len(np.unique(pred))
-print('Total Object Types detected:', objects_detected)
-
-dict = {'image_name': image_name, 'objects_detected': objects_detected}
 #Change w to a if you want to append 
 f = open('output.txt','a')
-f.write(str(dict))
+f.write(str(final_json))
 f.write('\n')
 f.close()
 
@@ -284,7 +195,7 @@ f.close()
 plt.subplot(1,2,1)
 plt.imshow(pred)
 plt.subplot(1,2,2)
-img=mpimg.imread(image_name)
+img=mpimg.imread(image_folder+'/'+ image_name)
 plt.imshow(img)
 
 #plt.imshow(pred)
