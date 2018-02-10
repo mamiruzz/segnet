@@ -50,9 +50,7 @@ model.load_weights(bst_weights_path)
 
 #image_name = sys.argv[1]
 
-image_folder = 'custom_images'
 
-image_name = '8.jpg'
 #print(image_name)
 
 # In[ ]:
@@ -123,85 +121,93 @@ def plot_images(predicted_mask):
 
 # In[17]:
 
+image_folder = 'video_frames'
 
-image = my_norm(cv2.imread(image_folder+'/'+ image_name))
-#print(image)
-#image = my_norm(cv2.imread('custom_images/' + 2.jpg))
-#image = cv2.resize(image, (480,360))
+csv_file = 'data.csv'
 
-image = imresize(image, (360,480))
-image = np.rollaxis(image,2)
-#image = (np.rollaxis(my_norm(cv2.imread('custom_images/' + image_name)),2))
-
-
-
-# In[18]:
-
-
-image = np.expand_dims(image, axis=0)
-
-output = model.predict_proba(image)
-#print('output')
-#print(output[0])
-pred = plot_images(np.argmax(output[0],axis=1).reshape((360,480)))
+#image_name = '8.jpg'
 
 def map_label(pos):
     return str(labels[pos])
 
+def WriteResult(directory):
+    import os
+    files = os.listdir(directory)
+    print(files)
+    if os.path.isfile(csv_file)!=True:
+        with open(csv_file, 'a') as f:
+            f.write('fileName, Sky, Building, Pole, Road, Pavement, Tree, SignSymbol, Fence, Car, Pedestrian, Bicyclist, Unlabelled\n')
+    j = 0
+    while j<len(files):
+        image = my_norm(cv2.imread(directory+'/'+ files[j]))
+        print(files[j])
+        #image = my_norm(cv2.imread('custom_images/' + 2.jpg))
+        #image = cv2.resize(image, (480,360))
+        
+        image = imresize(image, (360,480))
+        image = np.rollaxis(image,2)
+        #image = (np.rollaxis(my_norm(cv2.imread('custom_images/' + image_name)),2))
+        
+        
+        
+             
+        
+        image = np.expand_dims(image, axis=0)
+        
+        output = model.predict_proba(image)
+        #print('output')
+        #print(output[0])
+        pred = plot_images(np.argmax(output[0],axis=1).reshape((360,480)))
+        
+        
+        
+        
+        
+        predicted_classes = np.argmax(output[0],axis=1).reshape((360,480))
+        predicted_classes = np.reshape(predicted_classes, (np.product(predicted_classes.shape),))
+        #print('argmax')
+        total_numbers = len(predicted_classes)
+       
+        category_found = len(np.unique(predicted_classes))
+        print("Total categories found: "+str(category_found))
+        
+        from collections import Counter
+        d = Counter(predicted_classes)
+        
+        n, m = list(d.keys()), list(d.values())
+        #print(len(labels))
+        a = np.zeros(len(labels))
+        #print(a)
+        
+        for val in n:
+            #print(val)
+            a[val] = 1
+            
+        #print(a)  
+        
+        i=0
+        while(i<len(n)):
+           a[n[i]] = round(m[i]/total_numbers, 4)
+           i+=1
+           
+       
+        with open(csv_file, 'a') as f:
+            #f.write('fileName, Sky, Building, Pole, Road, Pavement, Tree, SignSymbol, Fence, Car, Pedestrian, Bicyclist, Unlabelled\n')
+            f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(files[j], a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[8], a[9], a[10], a[11]))
+        
+            
+        plt.subplot(1,2,1)
+        plt.imshow(pred)
+        plt.subplot(1,2,2)
+        img=mpimg.imread(directory+'/'+ files[j])
+        plt.imshow(img)
+        
+        #plt.imshow(pred)
+        plt.show()
+        j+=1
+    print('processing complete!')
 
-
-predicted_classes = np.argmax(output[0],axis=1).reshape((360,480))
-predicted_classes = np.reshape(predicted_classes, (np.product(predicted_classes.shape),))
-#print('argmax')
-total_numbers = len(predicted_classes)
-#print(total_numbers)
-#print('category')
-#print((np.unique(predicted_classes)))
-category_found = len(np.unique(predicted_classes))
-print("Total categories found: "+str(category_found))
-
-from collections import Counter
-d = Counter(predicted_classes)
-
-n, m = list(d.keys()), list(d.values())
-
-i=0
-s =""
-while i<len(n):
-    np.set_printoptions(precision=3)
-    item = '{"'+str((map_label(n[i])))+'", '+str(round(m[i]/total_numbers, 4))+'}'
-    s+= item + ', '
-    #print(item)
-    i+=1
-if len(s) > 0:
-    if s[-1:] == ",":
-        s = s[:-1]
-#print(s)
-
-final_json = '{"file_name": ' +'"'+ image_name+'", '+ s+'}'
-print(final_json)
-
-#Change w to a if you want to append 
-f = open('output.txt','a')
-f.write(str(final_json))
-f.write('\n')
-f.close()
-
-#df = pd.DataFrame()
-#df ['img_name'] = str(image_name)
-#df['objects_detected'] = 'abc'
-#df.to_csv('test.tsv', sep='\t', index=False)
-
-plt.subplot(1,2,1)
-plt.imshow(pred)
-plt.subplot(1,2,2)
-img=mpimg.imread(image_folder+'/'+ image_name)
-plt.imshow(img)
-
-#plt.imshow(pred)
-plt.show()
-# In[ ]:
-
+WriteResult(image_folder)
 
 
 
