@@ -121,25 +121,35 @@ def plot_images(predicted_mask):
 
 # In[17]:
 
-image_folder = 'video_frames'
+image_folder = 'g_media_left'
 
-csv_file = 'data.csv'
+segnet_folder = image_folder
+
+csv_file = image_folder+'.csv'
 
 #image_name = '8.jpg'
 
 def map_label(pos):
     return str(labels[pos])
 
-def WriteResult(directory):
+
+def GetFrameName(file_name, video_id, image_type):
+    video_name = video_id+'-'
+    image_extension = '.'+image_type
+    frame = file_name.replace(video_name, '')
+    frame = frame.replace(image_extension, '')
+    return frame
+
+def WriteResult(readdirectory, savedirectory):
     import os
-    files = os.listdir(directory)
+    files = os.listdir(readdirectory)
     print(files)
     if os.path.isfile(csv_file)!=True:
         with open(csv_file, 'a') as f:
-            f.write('fileName, Sky, Building, Pole, Road, Pavement, Tree, SignSymbol, Fence, Car, Pedestrian, Bicyclist, Unlabelled\n')
+            f.write('fileName, frame, Sky, Building, Pole, Road, Pavement, Tree, SignSymbol, Fence, Car, Pedestrian, Bicyclist, Unlabelled\n')
     j = 0
     while j<len(files):
-        image = my_norm(cv2.imread(directory+'/'+ files[j]))
+        image = my_norm(cv2.imread(readdirectory+'/'+ files[j]))
         print(files[j])
         #image = my_norm(cv2.imread('custom_images/' + 2.jpg))
         #image = cv2.resize(image, (480,360))
@@ -192,22 +202,30 @@ def WriteResult(directory):
            
        
         with open(csv_file, 'a') as f:
-            #f.write('fileName, Sky, Building, Pole, Road, Pavement, Tree, SignSymbol, Fence, Car, Pedestrian, Bicyclist, Unlabelled\n')
-            f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(files[j], a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[8], a[9], a[10], a[11]))
+            #f.write('fileName, frame, Sky, Building, Pole, Road, Pavement, Tree, SignSymbol, Fence, Car, Pedestrian, Bicyclist, Unlabelled\n')
+            f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(files[j], GetFrameName(files[j], readdirectory, 'jpg'), a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[8], a[9], a[10], a[11]))
         
-            
-        plt.subplot(1,2,1)
+        
+        save_directory = savedirectory+'_segnet'
+        
+        if not os.path.exists(save_directory):
+            os.makedirs(save_directory)
+        
         plt.imshow(pred)
-        plt.subplot(1,2,2)
-        img=mpimg.imread(directory+'/'+ files[j])
-        plt.imshow(img)
+        plt.savefig(save_directory+'/'+files[j])
+            
+#        plt.subplot(1,2,1)
+#        plt.imshow(pred)
+#        plt.subplot(1,2,2)
+#        img=mpimg.imread(directory+'/'+ files[j])
+#        plt.imshow(img)
         
         #plt.imshow(pred)
         plt.show()
         j+=1
     print('processing complete!')
 
-WriteResult(image_folder)
+WriteResult(image_folder, segnet_folder)
 
 
 
