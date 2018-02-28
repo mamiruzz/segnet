@@ -15,24 +15,26 @@ import os
 
 myloc = "downloads" 
 key = "&key=" + "AIzaSyDtg4UBLsMiVlnvFXy7HueEPLWypTQj2h4" #secrets.api_key
+heading = 180
 
 csv_file = 'info.csv'
 
 if os.path.isfile(csv_file)!=True:
     with open(myloc+'/'+csv_file, 'a') as f:
-        f.write('TripId, FileName, LinkLocation\n')
+        f.write('TripId, Lat, Lng, FileName, LinkLocation\n')
 
 
-def GetStreetView(Add, SaveLoc, TripId, FileNo):
+def GetStreetView(Add, SaveLoc, TripId, Lat, Lng, FileNo):
     import urllib.parse
     query = urllib.parse.quote(Add)
-    host = 'https://maps.googleapis.com/maps/api/streetview?size=1200x800&location=%s%s' % (query, key)
+    print(Lat)
+    host = 'https://maps.googleapis.com/maps/api/streetview?size=1200x800&location=%s%s&heading=%s' % (query, key, heading)
     MyUrl = str(host)
     print(MyUrl)
     fi = Add + ".jpg"
     fi = str(FileNo) +'.jpg'
     with open(SaveLoc+'/'+csv_file, 'a') as f:
-        f.write('{}, {}, {}\n'.format(str(TripId), fi, SaveLoc+'/'+fi))
+        f.write('{}, {}, {}, {}, {}\n'.format(str(TripId), Lat, Lng, fi, SaveLoc+'/'+fi))
         print('csv')    
     try:
         os.makedirs(SaveLoc)
@@ -66,7 +68,7 @@ results = []
 
 
 
-source_file = 'akron-police-dataset.csv'
+source_file = '10values.csv'
 with open(source_file, newline='') as myFile:  
     reader = csv.reader(myFile)
     lat_lng = ""
@@ -78,9 +80,12 @@ with open(source_file, newline='') as myFile:
             continue
         results.append(str(row[0]))
         id_value = row[0]
+        lat = str(row[2])
+        lng = str(row[3])
         row = row[2] +',' + row[3]
+        
         row = ''.join( c for c in str(row) if  c not in "[']")
-        GetStreetView(Add=row, SaveLoc=myloc, TripId = id_value, FileNo=i)
+        GetStreetView(Add=row, SaveLoc=myloc, TripId = id_value, Lat=lat, Lng = lng, FileNo=i)
         print(i)
         if row[0] in (None, ","):
              break
