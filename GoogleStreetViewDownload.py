@@ -13,11 +13,11 @@ import urllib.request
 import os
 
 
-myloc = "downloads" 
+myloc = "right" 
 key = "&key=" + "AIzaSyDtg4UBLsMiVlnvFXy7HueEPLWypTQj2h4" #secrets.api_key
-heading = 180
+heading = 270
 
-csv_file = 'info.csv'
+csv_file = myloc+'.csv'
 
 if os.path.isfile(csv_file)!=True:
     with open(myloc+'/'+csv_file, 'a') as f:
