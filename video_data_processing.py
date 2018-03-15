@@ -11,22 +11,28 @@ import cv2
 import os
 
 #video file location
-video_file_location = 'C:/Users/mamiruzz/Downloads/Videos/g_media_left.MP4'
+video_file_location = '1091516-L-1.MP4'
 vidcap = cv2.VideoCapture(video_file_location) 
 
-save_location = './20sec/'
+
+#make sure to create a folder to save those frames
+
 frame_ext = '.jpg'
 #print(os.path.basename(video_file_location))
 dir_loc =os.path.splitext(video_file_location)[0]
 vid_name = os.path.basename(dir_loc)
 print(vid_name)
 
+save_location = './'+str(vid_name)+'/'
+if not os.path.exists(save_location):
+    os.makedirs(save_location)
+
 # image is an array of array of [R,G,B] values
 success,image = vidcap.read()
 
 
-#5000 = 5 seconds interval
-interval = 60000 
+#1000 = 1 seconds interval
+interval = 1000 
 rate = interval
 
 csv_file = vid_name+'.csv'
@@ -44,15 +50,20 @@ while success:
     #print(file_time)
     
     # save frame as JPEG file
-    frame_name = "{}-{}".format(vid_name, str(count+interval))
+    #frame_number = count+(rate/1000)
+    #print(frame_number)
+    print(int(count))
+    frame_name = "{}-{}".format(vid_name, str(int(count)))
     frame_location ="{}{}{}".format(save_location, frame_name, frame_ext)
     
     # save frame as JPEG file
-    cv2.imwrite(frame_location, image)
+    resize = cv2.resize(image, (640, 480)) 
+    cv2.imwrite(frame_location, resize)
     with open(csv_file, 'a') as f:
         f.write('{}, {}\n'.format(vid_name, frame_name))
     # exit if Escape is hit
     if cv2.waitKey(10) == 27:
         break
     interval+=rate
-    count += 1
+    count += (rate/1000)
+print('framing complete!!')
